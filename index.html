@@ -539,6 +539,160 @@
   .song-meta h3 { font-size: 1.1rem; font-weight: 700; }
   .song-meta p { font-size: 0.8rem; color: #ffffff55; margin-top: 4px; }
 
+  /* Upload Zone */
+  .upload-zone {
+    border: 2px dashed #ffffff22;
+    border-radius: 18px;
+    padding: 30px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    background: #ffffff05;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .upload-zone::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, #FF2D7808, #7B2FFF08);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .upload-zone:hover {
+    border-color: var(--pink);
+    background: #FF2D7810;
+  }
+  .upload-zone:hover::before { opacity: 1; }
+
+  .upload-zone.dragover {
+    border-color: var(--cyan);
+    background: #00F5FF10;
+    transform: scale(1.01);
+    box-shadow: 0 0 30px #00F5FF22;
+  }
+
+  .upload-icon {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    animation: float 3s ease-in-out infinite;
+    display: block;
+    position: relative;
+    z-index: 1;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+
+  .upload-text {
+    font-size: 1rem;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 5px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .upload-sub {
+    font-size: 0.75rem;
+    color: #ffffff44;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Audio Player */
+  .audio-player {
+    background: linear-gradient(135deg, #FF2D7815, #7B2FFF15);
+    border: 1px solid #FF2D7833;
+    border-radius: 16px;
+    padding: 18px;
+    margin-bottom: 20px;
+    animation: fadeUp 0.4s ease forwards;
+  }
+
+  .audio-info {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .audio-disc {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--pink), var(--purple));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    flex-shrink: 0;
+    animation: spin 5s linear infinite;
+  }
+
+  .audio-meta { flex: 1; min-width: 0; }
+
+  .audio-filename {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: white;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .audio-duration {
+    font-size: 0.75rem;
+    color: #ffffff55;
+    margin-top: 3px;
+  }
+
+  .audio-remove {
+    background: #ffffff10;
+    border: 1px solid #ffffff20;
+    color: #ffffff66;
+    border-radius: 8px;
+    width: 32px; height: 32px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  .audio-remove:hover { background: #FF2D7830; border-color: var(--pink); color: white; }
+
+  audio {
+    filter: invert(0);
+  }
+  audio::-webkit-media-controls-panel {
+    background: #ffffff10;
+  }
+
+  /* Divider */
+  .divider-or {
+    text-align: center;
+    position: relative;
+    margin: 20px 0;
+  }
+  .divider-or::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0; right: 0;
+    height: 1px;
+    background: #ffffff12;
+  }
+  .divider-or span {
+    background: var(--card);
+    padding: 0 14px;
+    font-size: 0.78rem;
+    color: #ffffff44;
+    position: relative;
+    z-index: 1;
+  }
+
   /* Responsive */
   @media (max-width: 600px) {
     .tips-grid { grid-template-columns: 1fr; }
@@ -565,8 +719,32 @@
 
   <!-- Input Card -->
   <div class="input-card">
-    <div class="input-label">🎵 أدخل اسم الأغنية</div>
-    <textarea class="song-input" id="songInput" placeholder="مثال: Dynamite - BTS، أو أي أغنية كيبوب..."></textarea>
+
+    <!-- Upload Zone -->
+    <div class="upload-zone" id="uploadZone" onclick="document.getElementById('audioFile').click()">
+      <div class="upload-icon">🎵</div>
+      <div class="upload-text">ارفع أغنيتك من جهازك</div>
+      <div class="upload-sub">MP3, WAV, M4A, OGG مدعومة</div>
+      <input type="file" id="audioFile" accept="audio/*" style="display:none" onchange="handleAudioUpload(event)">
+    </div>
+
+    <!-- Audio Player (hidden until file loaded) -->
+    <div class="audio-player" id="audioPlayer" style="display:none">
+      <div class="audio-info">
+        <div class="audio-disc">🎶</div>
+        <div class="audio-meta">
+          <div class="audio-filename" id="audioFilename">-</div>
+          <div class="audio-duration" id="audioDuration">-</div>
+        </div>
+        <button class="audio-remove" onclick="removeAudio()">✕</button>
+      </div>
+      <audio id="audioElement" controls style="width:100%; margin-top:12px; border-radius:8px;"></audio>
+    </div>
+
+    <div class="divider-or"><span>أو أكتب اسم الأغنية</span></div>
+
+    <div class="input-label">🎤 اسم الأغنية</div>
+    <textarea class="song-input" id="songInput" placeholder="مثال: Dynamite - BTS، أو أي أغنية تبيها..."></textarea>
 
     <div class="style-pills" id="stylePills">
       <div class="pill active" data-style="kpop">K-Pop</div>
@@ -653,15 +831,66 @@
     });
   });
 
+  let uploadedAudioName = '';
+
+  // Drag & Drop support
+  const zone = document.getElementById('uploadZone');
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    zone.classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('audio/')) loadAudioFile(file);
+  });
+
+  function handleAudioUpload(event) {
+    const file = event.target.files[0];
+    if (file) loadAudioFile(file);
+  }
+
+  function loadAudioFile(file) {
+    uploadedAudioName = file.name.replace(/\.[^/.]+$/, ''); // remove extension
+    document.getElementById('audioFilename').textContent = uploadedAudioName;
+
+    const url = URL.createObjectURL(file);
+    const audio = document.getElementById('audioElement');
+    audio.src = url;
+
+    audio.addEventListener('loadedmetadata', () => {
+      const mins = Math.floor(audio.duration / 60);
+      const secs = Math.floor(audio.duration % 60).toString().padStart(2, '0');
+      document.getElementById('audioDuration').textContent = `⏱ ${mins}:${secs}`;
+    });
+
+    document.getElementById('audioPlayer').style.display = 'block';
+    document.getElementById('uploadZone').style.display = 'none';
+
+    // Auto-fill song name if empty
+    if (!document.getElementById('songInput').value.trim()) {
+      document.getElementById('songInput').value = uploadedAudioName;
+    }
+  }
+
+  function removeAudio() {
+    document.getElementById('audioPlayer').style.display = 'none';
+    document.getElementById('uploadZone').style.display = 'block';
+    document.getElementById('audioElement').src = '';
+    document.getElementById('audioFile').value = '';
+    uploadedAudioName = '';
+  }
+
   async function generateDance() {
-    const song = document.getElementById('songInput').value.trim();
+    const song = document.getElementById('songInput').value.trim() || uploadedAudioName;
     if (!song) {
+      document.getElementById('uploadZone').style.border = '2px dashed #FF2D78';
       document.getElementById('songInput').style.borderColor = '#FF2D78';
-      document.getElementById('songInput').placeholder = '⚠️ أدخل اسم الأغنية أولاً!';
+      document.getElementById('songInput').placeholder = '⚠️ ارفع أغنية أو أكتب اسمها!';
       setTimeout(() => {
+        document.getElementById('uploadZone').style.border = '';
         document.getElementById('songInput').style.borderColor = '';
-        document.getElementById('songInput').placeholder = 'مثال: Dynamite - BTS، أو أي أغنية كيبوب...';
-      }, 2000);
+        document.getElementById('songInput').placeholder = 'مثال: Dynamite - BTS، أو أي أغنية تبيها...';
+      }, 2500);
       return;
     }
 
