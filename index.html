@@ -693,6 +693,81 @@
     z-index: 1;
   }
 
+  /* YouTube Search Buttons */
+  .yt-btns { margin-bottom: 5px; }
+
+  .yt-hint {
+    font-size: 0.78rem;
+    color: #ffffff44;
+    margin-bottom: 12px;
+    text-align: center;
+  }
+
+  .yt-btn-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .yt-search-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    border-radius: 14px;
+    border: 1.5px solid #FF2D7833;
+    background: linear-gradient(135deg, #FF2D7815, #7B2FFF10);
+    color: white;
+    text-decoration: none;
+    transition: all 0.25s;
+    cursor: pointer;
+  }
+
+  .yt-search-btn.mirror {
+    border-color: #00F5FF33;
+    background: linear-gradient(135deg, #00F5FF10, #7B2FFF10);
+  }
+
+  .yt-search-btn:hover {
+    transform: translateY(-3px);
+    border-color: var(--pink);
+    box-shadow: 0 8px 25px #FF2D7833;
+  }
+
+  .yt-search-btn.mirror:hover {
+    border-color: var(--cyan);
+    box-shadow: 0 8px 25px #00F5FF33;
+  }
+
+  .yt-icon {
+    width: 42px; height: 42px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--pink), var(--purple));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+
+  .yt-search-btn.mirror .yt-icon {
+    background: linear-gradient(135deg, var(--purple), var(--cyan));
+  }
+
+  .yt-btn-label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: white;
+  }
+
+  .yt-btn-sub {
+    font-size: 0.7rem;
+    color: #ffffff55;
+    margin-top: 2px;
+  }
+
+  @media (max-width: 600px) {
+    .yt-btn-grid { grid-template-columns: 1fr; }
+  }
+
   /* Responsive */
   @media (max-width: 600px) {
     .tips-grid { grid-template-columns: 1fr; }
@@ -799,20 +874,18 @@
         <iframe id="videoFrame" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
       </div>
 
-      <!-- Placeholder -->
-      <div class="video-placeholder" id="videoPlaceholder">
-        <div class="play-icon">▶</div>
-        <div class="video-label">ابحث عن فيديو التعليم أدناه أو الصق رابط يوتيوب</div>
+      <!-- YouTube Search Buttons (shown before embed) -->
+      <div class="yt-btns" id="ytBtns">
+        <div class="yt-hint">🔍 ابحث على يوتيوب عن فيديو تعليمي:</div>
+        <div class="yt-btn-grid" id="searchLinks"></div>
       </div>
 
       <!-- URL Input -->
-      <div class="url-input-row">
-        <input class="url-input" id="urlInput" type="text" placeholder="الصق رابط يوتيوب هنا...">
+      <div class="url-input-row" style="margin-top:16px;">
+        <input class="url-input" id="urlInput" type="text" placeholder="أو الصق رابط يوتيوب هنا...">
         <button class="url-btn" onclick="embedVideo()">تشغيل ▶</button>
       </div>
 
-      <!-- Search Links -->
-      <div class="video-search-links" id="searchLinks"></div>
     </div>
 
   </div>
@@ -853,15 +926,19 @@
     uploadedAudioName = file.name.replace(/\.[^/.]+$/, ''); // remove extension
     document.getElementById('audioFilename').textContent = uploadedAudioName;
 
-    const url = URL.createObjectURL(file);
     const audio = document.getElementById('audioElement');
+    // Revoke old URL if any
+    if (audio._blobUrl) URL.revokeObjectURL(audio._blobUrl);
+    const url = URL.createObjectURL(file);
+    audio._blobUrl = url;
     audio.src = url;
+    audio.load();
 
-    audio.addEventListener('loadedmetadata', () => {
+    audio.onloadedmetadata = () => {
       const mins = Math.floor(audio.duration / 60);
       const secs = Math.floor(audio.duration % 60).toString().padStart(2, '0');
       document.getElementById('audioDuration').textContent = `⏱ ${mins}:${secs}`;
-    });
+    };
 
     document.getElementById('audioPlayer').style.display = 'block';
     document.getElementById('uploadZone').style.display = 'none';
@@ -1020,17 +1097,25 @@
       tipsGrid.appendChild(div);
     });
 
-    // Search links
+    // Search links - big tap-friendly buttons
     const searchQuery = data.youtubeSearch || `${originalInput} kpop dance tutorial`;
     const encoded = encodeURIComponent(searchQuery);
     const encodedMirror = encodeURIComponent(searchQuery + ' mirror slow');
 
     document.getElementById('searchLinks').innerHTML = `
-      <a class="video-link-btn" href="https://www.youtube.com/results?search_query=${encoded}" target="_blank">
-        <span>▶</span> يوتيوب - تعليم الرقصة
+      <a class="yt-search-btn" href="https://www.youtube.com/results?search_query=${encoded}" target="_blank">
+        <div class="yt-icon">▶</div>
+        <div class="yt-btn-text">
+          <div class="yt-btn-label">فيديو تعليم الرقصة</div>
+          <div class="yt-btn-sub">يفتح يوتيوب مباشرة</div>
+        </div>
       </a>
-      <a class="video-link-btn" href="https://www.youtube.com/results?search_query=${encodedMirror}" target="_blank">
-        <span>🔄</span> نسخة مرآة ببطء
+      <a class="yt-search-btn mirror" href="https://www.youtube.com/results?search_query=${encodedMirror}" target="_blank">
+        <div class="yt-icon">🔄</div>
+        <div class="yt-btn-text">
+          <div class="yt-btn-label">نسخة مرآة ببطء</div>
+          <div class="yt-btn-sub">أسهل للتعلم</div>
+        </div>
       </a>
     `;
 
